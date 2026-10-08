@@ -579,6 +579,37 @@ function goalRow(x) {
   x = x || {};
   return `<div class="trow" style="grid-template-columns:2fr 1fr 34px"><input class="gl" placeholder="Goal" value="${esc(x.label || '')}"><input class="gr" type="number" step="0.1" placeholder="RM" value="${x.reward != null ? x.reward : ''}"><button class="iconbtn" data-a="delRow">✕</button></div>`;
 }
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const pad2 = (n) => ('0' + n).slice(-2);
+const ymdLocal = (d) => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+function dueEditor(cur) {
+  const p = /^\d{4}-\d{2}-\d{2}$/.test(cur || '') ? cur.split('-').map(Number) : null;
+  const y0 = new Date().getFullYear();
+  const opt = (v, l, sel) => `<option value="${v}" ${sel ? 'selected' : ''}>${l}</option>`;
+  return `<div id="tdueq" style="display:flex;flex-wrap:wrap;gap:6px">
+      <button class="btn sm ghost" data-a="dueQuick" data-v="">No date</button>
+      <button class="btn sm ghost" data-a="dueQuick" data-v="0">Today</button>
+      <button class="btn sm ghost" data-a="dueQuick" data-v="1">Tomorrow</button>
+      <button class="btn sm ghost" data-a="dueQuick" data-v="sun">Sunday</button>
+      <button class="btn sm ghost" data-a="dueQuick" data-v="7">In 1 week</button></div>
+    <div class="row" style="margin-top:8px;gap:6px">
+      <select id="tdueD" aria-label="Day">${opt('', 'Day', !p)}${Array.from({ length: 31 }, (_, i) => opt(i + 1, i + 1, p && p[2] === i + 1)).join('')}</select>
+      <select id="tdueM" aria-label="Month">${opt('', 'Month', !p)}${MONTHS.map((m, i) => opt(i + 1, m, p && p[1] === i + 1)).join('')}</select>
+      <select id="tdueY" aria-label="Year">${opt('', 'Year', !p)}${[y0, y0 + 1].concat(p && p[0] !== y0 && p[0] !== y0 + 1 ? [p[0]] : []).map((y) => opt(y, y, p && p[0] === y)).join('')}</select></div>`;
+}
+function setDue(d) {
+  $('#tdueD').value = d ? d.getDate() : '';
+  $('#tdueM').value = d ? d.getMonth() + 1 : '';
+  $('#tdueY').value = d ? d.getFullYear() : '';
+}
+function readDue() {
+  const d = $('#tdueD').value, m = $('#tdueM').value, y = $('#tdueY').value;
+  if (!d && !m && !y) return '';
+  if (!d || !m || !y) throw new Error('Please pick the day, month and year (or tap No date)');
+  const dt = new Date(Number(y), Number(m) - 1, Number(d));
+  if (dt.getMonth() !== Number(m) - 1) throw new Error(MONTHS[m - 1] + ' does not have ' + d + ' days');
+  return ymdLocal(dt);
+}
 function taskSheet(t, fromTemplate) {
   const P = S.data.parent;
   const isNew = !t || fromTemplate;
@@ -601,7 +632,7 @@ function taskSheet(t, fromTemplate) {
     <div id="pane-multi" style="${t.type === 'multi' ? '' : 'display:none'}"><div class="hint small">Each goal pays its own reward. Kids tick what they achieved.</div>
       <div id="goals">${(t.goals.length ? t.goals : [{}, {}]).map(goalRow).join('')}</div><button class="btn sm ghost" data-a="addGoal">+ Add goal</button></div>
     <label>Repeats</label><div class="seg" id="trec"><button class="${t.recurrence === 'once' ? 'on' : ''}" data-a="seg" data-v="once">One time</button><button class="${t.recurrence === 'daily' ? 'on' : ''}" data-a="seg" data-v="daily">Daily</button><button class="${t.recurrence === 'weekly' ? 'on' : ''}" data-a="seg" data-v="weekly">Weekly</button></div>
-    <label>Due date (optional)</label><input id="tdue" type="date" value="${esc(t.dueDate)}">
+    <label>Due date (optional)</label>${dueEditor(t.dueDate)}
     <label>For</label><div id="tkids">${P.kids.map((k) => `<label class="opt"><input type="checkbox" value="${k.id}" ${t.assignees.indexOf(k.id) >= 0 ? 'checked' : ''}> ${esc(k.avatar)} ${esc(k.name)}</label>`).join('')}</div>
     <label class="opt"><input type="checkbox" id="ttpl" ${t.isTemplate ? 'checked' : ''}> Save as a template (reusable, not assigned)</label>
     <div style="height:16px"></div><button class="btn block" data-a="saveTask" data-id="${editId}">💾 Save quest</button>
@@ -618,7 +649,7 @@ function readTask(id) {
     maxScore: type === 'tiered' && scored ? Number($('#tmaxscore').value) || 0 : 0,
     tiers: $$('#tiers .trow').map((r) => ({ label: $('.tl', r).value, min: $('.tmin', r).value, max: $('.tmax', r).value, reward: $('.tr', r).value })),
     goals: $$('#goals .trow').map((r) => ({ label: $('.gl', r).value, reward: $('.gr', r).value })),
-    recurrence: $('#trec .on').dataset.v, dueDate: $('#tdue').value,
+    recurrence: $('#trec .on').dataset.v, dueDate: readDue(),
     assignees: $$('#tkids input:checked').map((x) => x.value), isTemplate: $('#ttpl').checked
   };
 }
@@ -743,7 +774,14 @@ const H = {
   fromTemplate() { templateSheet(); },
   useTemplate(d) { taskSheet(S.data.parent.tasks.find((t) => t.id === d.id), true); },
   editTask(d) { taskSheet(S.data.parent.tasks.find((t) => t.id === d.id)); },
-  saveTask(d) { act('taskSave', { task: readTask(d.id) }, 'Quest saved 🗺️'); },
+  saveTask(d) { let t; try { t = readTask(d.id); } catch (e) { return toast(e.message, true); } act('taskSave', { task: t }, 'Quest saved 🗺️'); },
+  dueQuick(d) {
+    if (d.v === '') return setDue(null);
+    const x = new Date();
+    if (d.v === 'sun') x.setDate(x.getDate() + ((7 - x.getDay()) % 7 || 7));
+    else x.setDate(x.getDate() + Number(d.v));
+    setDue(x);
+  },
   archiveTask(d) { if (confirm('Remove this quest? History and coins stay.')) act('taskArchive', { id: d.id }, 'Removed'); },
   segType(d, el) {
     $$('#ttype button').forEach((b) => b.classList.toggle('on', b === el));
