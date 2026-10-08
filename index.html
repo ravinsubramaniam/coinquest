@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<title>Coin Quest</title>
+<meta name="theme-color" content="#6d28d9">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Coin Quest">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f3ff; --card:#ffffff; --ink:#1e1b4b; --muted:#6b7280; --line:#e9e5ff;
+  --brand:#6d28d9; --brand2:#8b5cf6; --gold:#f59e0b; --good:#059669; --bad:#dc2626; --save:#db2777; --spend:#2563eb;
+  --chip:#ede9fe; --fd:Fredoka,Nunito,ui-rounded,system-ui,-apple-system,sans-serif; --shadow:0 6px 20px rgba(76,29,149,.10); --me:#6d28d9;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#120f24; --card:#1d1838; --ink:#f1efff; --muted:#a5a3c4; --line:#2e2856; --chip:#2b2452; --shadow:0 6px 20px rgba(0,0,0,.35);}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:16px}
+body{min-height:100vh;overscroll-behavior-y:contain}
+h1,h2,h3,.fred{font-family:var(--fd);margin:0}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:11px 12px;width:100%;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--brand2)}
+label{display:block;font-weight:800;font-size:.86rem;margin:14px 0 6px;color:var(--muted)}
+.wrap{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 96px)}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.muted{color:var(--muted)}
+.small{font-size:.84rem}
+.card{background:var(--card);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin:12px 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 16px;border-radius:14px;font-weight:800;background:var(--brand);color:#fff;transition:transform .08s}
+.btn:active{transform:scale(.96)}
+.btn.ghost{background:var(--chip);color:var(--brand)}
+@media (prefers-color-scheme: dark){.btn.ghost{color:#c4b5fd}}
+.btn.good{background:var(--good)} .btn.bad{background:var(--bad)} .btn.gold{background:var(--gold);color:#3b2300}
+.btn.sm{padding:8px 12px;border-radius:11px;font-size:.88rem}
+.btn.block{width:100%}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--chip);border-radius:999px;padding:3px 10px;font-size:.78rem;font-weight:800}
+.chip.warn{background:#fee2e2;color:#991b1b}
+.av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:24px;flex:none;background:var(--c,#8b5cf6)}
+.av.lg{width:84px;height:84px;font-size:46px}
+.av.sm{width:30px;height:30px;font-size:16px}
+.hero{background:linear-gradient(135deg,var(--me),#8b5cf6 60%,#ec4899);color:#fff;border-radius:24px;padding:18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero .big{font-family:var(--fd);font-size:2.6rem;font-weight:700;line-height:1}
+.jars{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.jar{background:rgba(255,255,255,.18);border-radius:16px;padding:10px 12px}
+.jar b{font-family:var(--fd);font-size:1.35rem;display:block}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#fbbf24);border-radius:99px}
+.hero .bar{background:rgba(255,255,255,.25)}
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);box-shadow:0 -4px 20px rgba(0,0,0,.08);padding:6px 6px calc(env(safe-area-inset-bottom) + 6px);display:flex;justify-content:center;z-index:20}
+.nav .in{display:flex;max-width:560px;width:100%}
+.nav button{flex:1;padding:6px 0;border-radius:14px;font-size:.74rem;font-weight:800;color:var(--muted);position:relative}
+.nav button span{display:block;font-size:1.45rem;line-height:1.3}
+.nav button.on{color:var(--brand);background:var(--chip)}
+@media (prefers-color-scheme: dark){.nav button.on{color:#c4b5fd}}
+.badge{position:absolute;top:2px;right:22%;background:var(--bad);color:#fff;border-radius:99px;font-size:.7rem;padding:1px 6px}
+.sec{margin:22px 4px 6px;font-family:var(--fd);font-size:1.1rem;font-weight:600}
+.task{display:flex;gap:12px;align-items:center}
+.task .ic{width:48px;height:48px;border-radius:14px;background:var(--chip);display:grid;place-items:center;font-size:26px;flex:none}
+.task h3{font-size:1.05rem;font-weight:600}
+.rew{font-family:var(--fd);font-weight:700;color:var(--good);white-space:nowrap}
+.empty{text-align:center;padding:30px 10px;color:var(--muted)}
+.empty div{font-size:2.6rem}
+.sheet-bg{position:fixed;inset:0;background:rgba(15,10,40,.55);z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:fade .15s}
+.sheet{background:var(--card);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;padding:18px 18px calc(env(safe-area-inset-bottom) + 22px);animation:up .2s ease-out}
+.sheet h2{font-size:1.35rem;margin-bottom:4px}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+@keyframes fade{from{opacity:0}}
+.opt{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:14px;padding:12px;margin:8px 0;cursor:pointer;font-weight:700}
+.opt input{width:auto;margin:0}
+.opt.on{border-color:var(--brand2);background:var(--chip)}
+.seg{display:flex;background:var(--chip);border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;padding:9px 4px;border-radius:11px;font-weight:800;font-size:.86rem;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--brand);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.trow{display:grid;grid-template-columns:1.6fr .8fr .8fr 1fr 34px;gap:6px;margin:6px 0;align-items:center}
+.trow input{padding:9px 8px}
+.noscore .trow{grid-template-columns:2fr 1fr 34px}
+.noscore .sc{display:none}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.badgecard{text-align:center;padding:14px 6px;border-radius:18px;background:var(--card);box-shadow:var(--shadow)}
+.badgecard .e{font-size:2.2rem}
+.badgecard.off{opacity:.35;filter:grayscale(1)}
+.badgecard b{display:block;font-size:.85rem;margin-top:4px}
+.pin-dots{display:flex;gap:16px;justify-content:center;margin:22px 0}
+.pin-dots i{width:18px;height:18px;border-radius:50%;border:3px solid var(--brand2)}
+.pin-dots i.f{background:var(--brand2)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:300px;margin:0 auto}
+.pad button{height:68px;border-radius:22px;background:var(--card);box-shadow:var(--shadow);font-family:var(--fd);font-size:1.7rem;font-weight:600}
+.pad button:active{background:var(--chip)}
+.who{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:20px}
+.who button{background:var(--card);border-radius:22px;padding:20px 10px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;gap:10px;font-family:var(--fd);font-size:1.2rem;font-weight:600}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 14px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:14px;font-weight:800;z-index:90;max-width:90vw;box-shadow:var(--shadow);animation:fade .2s}
+.toast.err{background:var(--bad);color:#fff}
+.busy{position:fixed;top:0;left:0;right:0;height:4px;z-index:95;overflow:hidden}
+.busy i{display:block;height:100%;width:40%;background:linear-gradient(90deg,var(--gold),var(--brand2));animation:slide 1s infinite ease-in-out}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(260%)}}
+.li{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.li:last-child{border-bottom:0}
+.amt{font-family:var(--fd);font-weight:700;white-space:nowrap}
+.amt.p{color:var(--good)} .amt.n{color:var(--bad)}
+.celebrate{position:fixed;inset:0;z-index:80;background:rgba(15,10,40,.7);display:grid;place-items:center;padding:20px;animation:fade .2s}
+.celebrate .box{background:var(--card);border-radius:28px;padding:26px 22px;text-align:center;max-width:380px;width:100%;animation:pop .4s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+.conf{position:fixed;top:-40px;font-size:24px;z-index:81;animation:fall linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+.iconbtn{width:40px;height:40px;border-radius:12px;background:var(--chip);display:grid;place-items:center;font-size:1.15rem}
+.hint{background:var(--chip);border-radius:14px;padding:12px;font-size:.88rem;margin:10px 0}
+.flame{font-family:var(--fd);font-weight:700}
+.emojis{display:flex;flex-wrap:wrap;gap:6px}
+.emojis button{width:42px;height:42px;border-radius:12px;font-size:22px;background:var(--bg);border:2px solid var(--line)}
+.emojis button.on{border-color:var(--brand2);background:var(--chip)}
+.colors{display:flex;flex-wrap:wrap;gap:8px}
+.colors button{width:34px;height:34px;border-radius:50%;border:3px solid transparent}
+.colors button.on{border-color:var(--ink)}
+.meter{margin-top:10px}
+.right{text-align:right}
+a{color:var(--brand2)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="sheet"></div>
+<div id="overlay"></div>
+<script>
+/* ============ CONFIG ============ */
+// Paste your Apps Script Web App URL between the quotes (ends with /exec).
+const API_URL = 'https://script.google.com/macros/s/AKfycbxXIujcW6L93_J5xVHw7BbHCQCfEAVnZKkAiNcCwSaq-gLq_I_hSKXs5lihLyGmGjKekQ/exec';
+/* ================================ */
+
+const CAT = { Chores:'🧹', School:'📚', Quiz:'🧠', Competition:'🏆', Reading:'📖', Sports:'⚽', Music:'🎵', Other:'⭐' };
+const AVATARS = ['🚀','⚽','🦖','🦄','🐱','🐶','🦊','🐼','🐯','🦁','🌸','🎮','🏀','🎨','🌟','🐉','🐬','🦋','🤖','👑'];
+const COLORS = ['#7c3aed','#2563eb','#059669','#db2777','#ea580c','#0891b2','#ca8a04','#4f46e5'];
+const WISH_EMOJI = ['🎁','🧱','🎮','🧸','📚','⚽','🎨','🚲','🍦','🎧','📱','🦖'];
+
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem('cq_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('cq_' + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem('cq_' + k); } catch (e) {} }
+};
+
+const S = {
+  api: API_URL || LS.get('api', ''),
+  token: LS.get('token', null),
+  members: LS.get('members', []),
+  data: null, tab: null, pickId: null, pin: '', pin1: null, busy: 0
+};
+if (S.token) { const id = S.token.split('.')[0]; S.data = LS.get('cache_' + id, null); }
+
+/* ---------- helpers ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = (n) => { n = Math.round((Number(n) || 0) * 100) / 100; return 'RM' + (Number.isInteger(n) ? n : n.toFixed(2)); };
+const member = (id) => (S.data && S.data.members.find((m) => m.id === id)) || (S.data && S.data.parent && S.data.parent.allMembers.find((m) => m.id === id)) || { name: '?', avatar: '❔', color: '#999' };
+const av = (m, cls = '') => `<div class="av ${cls}" style="--c:${esc(m.color)}">${esc(m.avatar)}</div>`;
+const fmtDate = (ymd) => { if (!ymd) return ''; const d = new Date(ymd + 'T00:00:00'); return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); };
+const ago = (ms) => { const s = (Date.now() - ms) / 1000; if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s / 60) + 'm ago'; if (s < 86400) return Math.floor(s / 3600) + 'h ago'; const d = Math.floor(s / 86400); return d === 1 ? 'yesterday' : d + ' days ago'; };
+function rewardText(t) {
+  if (t.type === 'simple') return money(t.reward);
+  if (t.type === 'tiered') { const r = t.tiers.map((x) => Number(x.reward)); return money(Math.min(...r)) + '–' + money(Math.max(...r)); }
+  if (t.type === 'multi') return 'up to ' + money(t.goals.reduce((a, g) => a + Number(g.reward), 0));
+  return '';
+}
+const recText = (r) => r === 'daily' ? '🔁 Daily' : r === 'weekly' ? '📅 Weekly' : '1️⃣ One time';
+
+function toast(msg, err) {
+  const el = document.createElement('div');
+  el.className = 'toast' + (err ? ' err' : '');
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), err ? 3500 : 2200);
+}
+function setBusy(d) {
+  S.busy += d;
+  let el = $('#busy');
+  if (S.busy > 0 && !el) { el = document.createElement('div'); el.id = 'busy'; el.className = 'busy'; el.innerHTML = '<i></i>'; document.body.appendChild(el); }
+  if (S.busy <= 0 && el) el.remove();
+}
+
+/* ---------- API ---------- */
+async function api(action, payload = {}) {
+  setBusy(1);
+  try {
+    const res = await fetch(S.api, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action, token: S.token }, payload)) });
+    const j = await res.json();
+    if (!j.ok) {
+      if (j.auth) { logout(true); throw new Error('Please log in again'); }
+      throw new Error(j.error || 'Something went wrong');
+    }
+    if (j.state) { S.data = j.state; LS.set('cache_' + j.state.me.id, j.state); }
+    return j;
+  } catch (e) {
+    if (e instanceof TypeError) throw new Error('No connection. Check your internet.');
+    throw e;
+  } finally { setBusy(-1); }
+}
+async function act(action, payload, okMsg) {
+  try {
+    await api(action, payload);
+    closeSheet();
+    if (okMsg) toast(okMsg);
+    render();
+    return true;
+  } catch (e) { toast(e.message, true); return false; }
+}
+async function refresh(quiet) {
+  if (!S.token) return;
+  try { await api('state'); render(); } catch (e) { if (!quiet) toast(e.message, true); }
+}
+async function loadMembers() {
+  try { const j = await api('members'); S.members = j.members; LS.set('members', j.members); render(); }
+  catch (e) { toast(e.message, true); }
+}
+function logout(silent) {
+  S.token = null; S.data = null; S.pickId = null; S.pin = ''; S.tab = null;
+  LS.del('token');
+  if (!silent) toast('Logged out');
+  render();
+  loadMembers();
+}
+
+/* ---------- sheets ---------- */
+function openSheet(html) {
+  $('#sheet').innerHTML = `<div class="sheet-bg" data-a="bg"><div class="sheet">${html}</div></div>`;
+}
+function closeSheet() { $('#sheet').innerHTML = ''; }
+
+/* ---------- render root ---------- */
+function render() {
+  const app = $('#app');
+  if (!S.api) { app.innerHTML = connectView(); return; }
+  if (!S.token || !S.data) { app.innerHTML = S.pickId ? pinView() : pickView(); return; }
+  document.documentElement.style.setProperty('--me', S.data.me.color || '#6d28d9');
+  if (S.data.me.mustChangePin) { app.innerHTML = changePinView(); return; }
+  app.innerHTML = S.data.me.role === 'kid' ? kidView() : parentView();
+  if (S.data.me.role === 'kid') maybeCelebrate();
+}
+
+/* ---------- connect / login ---------- */
+function connectView() {
+  return `<div class="wrap"><div style="text-align:center;margin-top:40px"><div style="font-size:64px">🪙</div><h1>Coin Quest</h1>
+  <p class="muted">One-time setup: paste the Web App link from your Google Sheet (Extensions → Apps Script → Deploy).</p></div>
+  <div class="card"><label>Web App URL</label><input id="apiurl" placeholder="https://script.google.com/macros/s/.../exec">
+  <div style="height:14px"></div><button class="btn block" data-a="connect">Connect</button></div></div>`;
+}
+function pickView() {
+  const ms = S.members || [];
+  return `<div class="wrap"><div style="text-align:center;margin-top:24px"><div style="font-size:56px">🪙</div><h1>Coin Quest</h1><p class="muted">Who's playing?</p></div>
+  ${ms.length ? `<div class="who">${ms.map((m) => `<button data-a="pick" data-id="${m.id}">${av(m, 'lg')}${esc(m.name)}</button>`).join('')}</div>`
+    : `<div class="empty"><div>⏳</div>Loading family…</div>`}
+  </div>`;
+}
+function pinView(title) {
+  const m = (S.members || []).find((x) => x.id === S.pickId) || { name: '', avatar: '', color: '#999' };
+  return `<div class="wrap" style="text-align:center"><div class="row between"><button class="iconbtn" data-a="unpick">←</button><span></span></div>
+  <div style="display:flex;justify-content:center;margin-top:6px">${av(m, 'lg')}</div>
+  <h2 style="margin-top:10px">${title || 'Hi ' + esc(m.name) + '!'}</h2><p class="muted">${title ? '' : 'Enter your PIN'}</p>
+  <div class="pin-dots" id="dots">${[0, 1, 2, 3].map((i) => `<i class="${S.pin.length > i ? 'f' : ''}"></i>`).join('')}</div>
+  <div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `<button data-a="key" data-k="${n}">${n}</button>`).join('')}<span></span><button data-a="key" data-k="0">0</button><button data-a="key" data-k="del">⌫</button></div></div>`;
+}
+function changePinView() {
+  const m = S.data.me;
+  const t = S.pin1 === null ? 'Choose your new secret PIN' : 'Type it again';
+  return `<div class="wrap" style="text-align:center"><div style="display:flex;justify-content:center;margin-top:30px">${av(m, 'lg')}</div>
+  <h2 style="margin-top:10px">${t}</h2><p class="muted">4 numbers. Don't tell anyone! 🤫</p>
+  <div class="pin-dots" id="dots">${[0, 1, 2, 3].map((i) => `<i class="${S.pin.length > i ? 'f' : ''}"></i>`).join('')}</div>
+  <div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `<button data-a="key" data-k="${n}">${n}</button>`).join('')}<span></span><button data-a="key" data-k="0">0</button><button data-a="key" data-k="del">⌫</button></div></div>`;
+}
+async function onPinComplete() {
+  const pin = S.pin;
+  if (S.data && S.data.me.mustChangePin) {
+    if (S.pin1 === null) { S.pin1 = pin; S.pin = ''; render(); return; }
+    if (S.pin1 !== pin) { S.pin1 = null; S.pin = ''; render(); shakeDots(); toast("PINs didn't match. Try again.", true); return; }
+    try {
+      const j = await api('changePin', { newPin: pin });
+      S.token = j.token; LS.set('token', j.token);
+      S.pin1 = null; S.pin = '';
+      toast('PIN saved 🔒'); render();
+    } catch (e) { S.pin1 = null; S.pin = ''; render(); toast(e.message, true); }
+    return;
+  }
+  try {
+    const j = await api('login', { memberId: S.pickId, pin });
+    S.token = j.token; LS.set('token', j.token);
+    S.pin = ''; S.pickId = null; S.tab = null;
+    if (j.mustChangePin) S.data.me.mustChangePin = true;
+    render();
+  } catch (e) { S.pin = ''; render(); shakeDots(); toast(e.message, true); }
+}
+function shakeDots() { const d = $('#dots'); if (d) { d.classList.add('shake'); setTimeout(() => d.classList.remove('shake'), 400); } }
+
+/* ================= KID ================= */
+function kidView() {
+  const D = S.data, K = D.kid, st = K.stats, me = D.me;
+  const tab = S.tab || 'quests';
+  const lv = st.level;
+  const pct = lv.next ? Math.min(100, Math.round((lv.xp - lv.floor) / (lv.next - lv.floor) * 100)) : 100;
+  const head = `<div class="row between"><div class="row">${av(me)}<div><h2>Hi ${esc(me.name)}!</h2><div class="small muted">${lv.icon} ${esc(lv.name)} · <span class="flame">🔥 ${st.streak.current}</span> day streak</div></div></div>
+    <div class="row"><button class="iconbtn" data-a="refresh" title="Refresh">↻</button><button class="iconbtn" data-a="menu" title="Menu">☰</button></div></div>`;
+  const hero = `<div class="hero" style="margin-top:14px"><div class="small" style="opacity:.9;font-weight:800">MY COINS</div><div class="big">${money(st.wallet.total)}</div>
+    <div class="jars"><div class="jar">💳 Spend<b>${money(st.wallet.spend)}</b></div><div class="jar">🐷 Save<b>${money(st.wallet.save)}</b></div></div>
+    <div style="margin-top:14px" class="small"><div class="row between" style="margin-bottom:6px"><b>${lv.icon} ${esc(lv.name)}</b><span>${lv.next ? (lv.next - lv.xp) + ' XP to ' + esc(lv.nextName) : 'Max level!'}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div></div>`;
+  let body = '';
+  if (tab === 'quests') body = kidQuests();
+  else if (tab === 'wishes') body = kidWishes();
+  else if (tab === 'badges') body = kidBadges();
+  else body = kidWallet();
+  const pendingReq = K.requests.filter((r) => r.status === 'pending').length;
+  const nav = navBar([
+    ['quests', '🗺️', 'Quests'], ['wishes', '🎁', 'Wishes'], ['badges', '🏅', 'Badges'], ['wallet', '💰', 'Wallet', pendingReq]
+  ], tab);
+  return `<div class="wrap">${head}${tab === 'quests' || tab === 'wallet' ? hero : ''}${body}</div>${nav}`;
+}
+function navBar(items, tab) {
+  return `<div class="nav"><div class="in">${items.map(([k, e, l, n]) => `<button class="${tab === k ? 'on' : ''}" data-a="tab" data-t="${k}"><span>${e}</span>${l}${n ? `<i class="badge">${n}</i>` : ''}</button>`).join('')}</div></div>`;
+}
+function taskCard(t) {
+  const today = S.data.today;
+  const overdue = t.dueDate && t.dueDate < today && (t.state === 'open' || t.state === 'retry');
+  let action = '';
+  if (t.state === 'open') action = `<button class="btn sm" data-a="submit" data-id="${t.id}">Done!</button>`;
+  else if (t.state === 'retry') action = `<button class="btn sm gold" data-a="submit" data-id="${t.id}">Try again</button>`;
+  else if (t.state === 'pending') action = `<span class="chip">⏳ Waiting</span>`;
+  else action = `<span class="chip" style="background:#d1fae5;color:#065f46">✅ ${t.last && t.last.finalReward !== '' ? money(t.last.finalReward) : 'Done'}</span>`;
+  const note = t.state === 'retry' && t.last && t.last.parentComment ? `<div class="hint" style="margin:10px 0 0">↩️ ${esc(member(t.last.reviewedBy).name)}: “${esc(t.last.parentComment)}”</div>` : '';
+  const praise = t.state === 'done' && t.last && t.last.parentComment ? `<div class="hint" style="margin:10px 0 0">💬 ${esc(member(t.last.reviewedBy).name)}: “${esc(t.last.parentComment)}”</div>` : '';
+  return `<div class="card"><div class="task"><div class="ic">${CAT[t.category] || '⭐'}</div><div class="grow"><h3>${esc(t.title)}</h3>
+    <div class="small muted" style="margin-top:2px"><span class="rew">${rewardText(t)}</span> · ${recText(t.recurrence)}${t.dueDate ? ` · <span class="${overdue ? 'chip warn' : ''}">Due ${fmtDate(t.dueDate)}</span>` : ''}</div></div>${action}</div>${note}${praise}</div>`;
+}
+function kidQuests() {
+  const T = S.data.kid.tasks;
+  const todo = T.filter((t) => t.state === 'open' || t.state === 'retry');
+  const wait = T.filter((t) => t.state === 'pending');
+  const done = T.filter((t) => t.state === 'done');
+  const ideas = S.data.kid.ideas.filter((i) => i.status === 'proposed' || i.status === 'rejected').slice(0, 3);
+  return `<div class="sec">🗺️ Quests to do</div>${todo.length ? todo.map(taskCard).join('') : `<div class="card empty"><div>🎉</div>All quests done! Great job.</div>`}
+  ${wait.length ? `<div class="sec">⏳ Waiting for approval</div>${wait.map(taskCard).join('')}` : ''}
+  ${done.length ? `<div class="sec">✅ Done</div>${done.map(taskCard).join('')}` : ''}
+  <div style="height:8px"></div><button class="btn ghost block" data-a="propose">💡 Suggest a quest</button>
+  ${ideas.length ? `<div class="card small">${ideas.map((i) => `<div class="li"><div class="grow">💡 ${esc(i.title)}</div><span class="chip ${i.status === 'rejected' ? 'warn' : ''}">${i.status === 'proposed' ? 'Waiting' : 'Not this time'}</span></div>`).join('')}</div>` : ''}`;
+}
+function submitSheet(id) {
+  const t = S.data.kid.tasks.find((x) => x.id === id);
+  let inner = '';
+  if (t.type === 'tiered' && t.maxScore > 0) {
+    inner = `<label>Your score (out of ${t.maxScore})</label><input id="score" type="number" inputmode="numeric" min="0" max="${t.maxScore}" placeholder="e.g. ${t.maxScore}">
+      <div id="tierprev" class="hint">${t.tiers.map((x) => `${esc(x.label)}: ${x.min}–${x.max} → <b>${money(x.reward)}</b>`).join('<br>')}</div>`;
+  } else if (t.type === 'tiered') {
+    inner = `<label>How did it go?</label>${t.tiers.map((x, i) => `<label class="opt" style="margin:8px 0"><input type="radio" name="tier" value="${i}"> <span class="grow">${esc(x.label)}</span><span class="rew">${money(x.reward)}</span></label>`).join('')}`;
+  } else if (t.type === 'multi') {
+    inner = `<label>Which goals did you reach?</label>${t.goals.map((x, i) => `<label class="opt" style="margin:8px 0"><input type="checkbox" name="goal" value="${i}"> <span class="grow">${esc(x.label)}</span><span class="rew">${money(x.reward)}</span></label>`).join('')}`;
+  } else {
+    inner = `<div class="hint">Finished? Tap send and a parent will check it. You'll get <b>${money(t.reward)}</b>.</div>`;
+  }
+  openSheet(`<h2>${CAT[t.category] || '⭐'} ${esc(t.title)}</h2>${t.description ? `<p class="muted">${esc(t.description)}</p>` : ''}
+    ${inner}<label>Message for Mum & Dad (optional)</label><textarea id="note" rows="2" placeholder="Anything to add?"></textarea>
+    <div style="height:16px"></div><button class="btn block good" data-a="doSubmit" data-id="${t.id}">Send for approval 🚀</button>`);
+}
+function kidWishes() {
+  const K = S.data.kid, W = K.wishlist.filter((w) => w.status === 'active'), B = K.wishlist.filter((w) => w.status === 'bought');
+  const total = K.stats.wallet.total;
+  const card = (w) => {
+    const p = Math.min(100, Math.round(total / w.price * 100));
+    const pend = K.requests.some((r) => r.wishId === w.id && r.status === 'pending');
+    return `<div class="card"><div class="task"><div class="ic">${esc(w.emoji)}</div><div class="grow"><h3>${esc(w.title)}</h3><div class="small muted">${money(Math.min(total, w.price))} of ${money(w.price)}</div></div>
+      ${pend ? '<span class="chip">⏳ Asked</span>' : p >= 100 ? `<button class="btn sm good" data-a="buyWish" data-id="${w.id}">Buy it!</button>` : `<button class="iconbtn" data-a="wishDel" data-id="${w.id}" title="Remove">✕</button>`}</div>
+      <div class="bar" style="margin-top:12px"><i style="width:${p}%"></i></div><div class="small muted right" style="margin-top:4px">${p >= 100 ? 'You can afford it! 🎉' : money(w.price - total) + ' to go'}</div></div>`;
+  };
+  return `<div class="sec">🎁 My wishlist</div>${W.length ? W.map(card).join('') : `<div class="card empty"><div>✨</div>What are you saving for? Add a wish!</div>`}
+    <button class="btn block" data-a="wishAdd">➕ Add a wish</button>
+    ${B.length ? `<div class="sec">🛍️ Got it!</div><div class="card">${B.map((w) => `<div class="li"><span>${esc(w.emoji)}</span><div class="grow">${esc(w.title)}</div><span class="muted">${money(w.price)}</span></div>`).join('')}</div>` : ''}`;
+}
+function kidBadges() {
+  const st = S.data.kid.stats, lv = st.level, L = S.data.levels, set = S.data.kid.settings;
+  return `<div class="sec">🏅 My badges (${st.badges.filter((b) => b.got).length}/${st.badges.length})</div>
+    <div class="grid3">${st.badges.map((b) => `<div class="badgecard ${b.got ? '' : 'off'}"><div class="e">${b.icon}</div><b>${esc(b.name)}</b><div class="small muted">${esc(b.desc)}</div></div>`).join('')}</div>
+    <div class="sec">⭐ Levels</div><div class="card">${L.map((x, i) => `<div class="li" style="${i === lv.index ? 'font-weight:800' : i > lv.index ? 'opacity:.5' : ''}"><span style="font-size:1.4rem">${x.icon}</span><div class="grow">${esc(x.name)}${i === lv.index ? ' ← you are here' : ''}</div><span class="small muted">${x.xp} XP</span></div>`).join('')}
+    <p class="small muted">You have <b>${lv.xp} XP</b>. Every RM1 earned = 10 XP, every quest = 5 XP.</p></div>
+    <div class="card"><div class="row"><span style="font-size:2rem">🔥</span><div class="grow"><b>${st.streak.current} day streak</b> (best: ${st.streak.best})<div class="small muted">Finish a quest every day. Every ${set.streakDays} days in a row = ${money(set.streakBonus)} bonus!</div></div></div></div>
+    <div class="card"><div class="row"><span style="font-size:2rem">🐷</span><div class="grow"><b>Save jar grows!</b><div class="small muted">Every month your Save jar gets ${set.interestPct}% extra from the Family Bank.</div></div></div></div>`;
+}
+function ledgerList(items, showKid) {
+  if (!items.length) return `<div class="empty"><div>🪙</div>Nothing yet</div>`;
+  return items.map((l) => `<div class="li">${showKid ? av(member(l.kidId), 'sm') : `<span style="font-size:1.2rem">${l.jar === 'save' ? '🐷' : '💳'}</span>`}<div class="grow"><div style="font-weight:700">${esc(l.description)}</div><div class="small muted">${showKid ? esc(member(l.kidId).name) + ' · ' : ''}${l.jar === 'save' ? 'Save' : 'Spend'} jar · ${ago(l.ts)}</div></div><span class="amt ${l.amount >= 0 ? 'p' : 'n'}">${l.amount >= 0 ? '+' : '−'}${money(Math.abs(l.amount))}</span></div>`).join('');
+}
+function kidWallet() {
+  const K = S.data.kid;
+  const pend = K.requests.filter((r) => r.status === 'pending');
+  const done = K.requests.filter((r) => r.status !== 'pending').slice(0, 5);
+  return `<div class="row" style="gap:10px;margin-top:12px"><button class="btn grow" data-a="spendReq">💳 Spend</button><button class="btn ghost grow" data-a="unlockReq">🐷 Unlock savings</button></div>
+    ${pend.length ? `<div class="sec">⏳ Waiting for approval</div><div class="card">${pend.map((r) => `<div class="li"><span>${r.type === 'spend' ? '💳' : '🔓'}</span><div class="grow">${esc(r.description)}</div><span class="amt">${money(r.amount)}</span></div>`).join('')}</div>` : ''}
+    ${done.length ? `<div class="sec">📨 My requests</div><div class="card">${done.map((r) => `<div class="li"><span>${r.status === 'approved' ? '✅' : '❌'}</span><div class="grow">${esc(r.description)}${r.comment ? `<div class="small muted">“${esc(r.comment)}”</div>` : ''}</div><span class="amt">${money(r.amount)}</span></div>`).join('')}</div>` : ''}
+    <div class="sec">📜 History</div><div class="card">${ledgerList(K.ledger.slice(0, 40))}</div>`;
+}
+function requestSheet(type, wish) {
+  const w = S.data.kid.stats.wallet;
+  const max = type === 'spend' ? w.spend : w.save;
+  openSheet(`<h2>${type === 'spend' ? '💳 Spend my coins' : '🔓 Unlock savings'}</h2>
+    <p class="muted">${type === 'spend' ? `You have ${money(w.spend)} in your Spend jar.` : `Move money from Save (${money(w.save)}) to Spend. A parent needs to say yes.`}</p>
+    <label>${type === 'spend' ? 'What do you want to buy?' : 'What is it for?'}</label><input id="rdesc" value="${wish ? esc(wish.title) : ''}" placeholder="${type === 'spend' ? 'e.g. Robux, Lego, ice cream' : 'e.g. Saving up for Lego'}">
+    <label>How much? (RM)</label><input id="ramt" type="number" inputmode="decimal" step="0.1" min="0" max="${max}" value="${wish ? wish.price : ''}">
+    <div style="height:16px"></div><button class="btn block" data-a="doRequest" data-type="${type}" data-wish="${wish ? wish.id : ''}">Ask a parent 🙏</button>`);
+}
+
+/* celebrations */
+function maybeCelebrate() {
+  const K = S.data.kid, key = 'seen_' + S.data.me.id;
+  const seen = LS.get(key, null);
+  if (seen === null) { LS.set(key, S.data.serverTime); return; }
+  const fresh = K.ledger.filter((l) => l.ts > seen && l.amount > 0 && l.type !== 'transfer');
+  const rejected = K.history.filter((s) => s.status === 'rejected' && s.reviewedAt > seen);
+  LS.set(key, S.data.serverTime);
+  if (!fresh.length) { if (rejected.length) toast('A parent sent back a quest. Check the note!'); return; }
+  const sum = fresh.reduce((a, l) => a + l.amount, 0);
+  const lines = {};
+  fresh.forEach((l) => { const d = l.description.replace(/ \(saved \d+%\)$/, ''); lines[d] = (lines[d] || 0) + l.amount; });
+  $('#overlay').innerHTML = `<div class="celebrate" data-a="closeCeleb"><div class="box"><div style="font-size:64px">🎉</div><h1>You earned ${money(sum)}!</h1>
+    <div class="card" style="box-shadow:none;background:var(--bg);text-align:left">${Object.keys(lines).map((d) => `<div class="li"><div class="grow">${esc(d)}</div><span class="amt p">+${money(lines[d])}</span></div>`).join('')}</div>
+    <button class="btn block gold" data-a="closeCeleb">Awesome! 🙌</button></div></div>`;
+  confetti();
+}
+function confetti() {
+  const em = ['🪙', '⭐', '🎉', '✨', '💰', '🌟'];
+  for (let i = 0; i < 36; i++) {
+    const s = document.createElement('span');
+    s.className = 'conf';
+    s.textContent = em[i % em.length];
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.animationDuration = 1.8 + Math.random() * 1.8 + 's';
+    s.style.animationDelay = Math.random() * .6 + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 4500);
+  }
+}
+
+/* ================= PARENT ================= */
+function parentView() {
+  const D = S.data, P = D.parent, me = D.me;
+  const tab = S.tab || 'inbox';
+  const n = P.pending.length + P.requests.length + P.proposals.length;
+  const cap = Number(P.settings.monthlyCap) || 0;
+  const pct = cap ? Math.min(100, Math.round(P.monthPayout / cap * 100)) : 0;
+  const head = `<div class="row between"><div class="row">${av(me)}<div><h2>Hi ${esc(me.name)}</h2><div class="small muted">Parent dashboard</div></div></div>
+    <div class="row"><button class="iconbtn" data-a="refresh">↻</button><button class="iconbtn" data-a="menu">☰</button></div></div>
+    <div class="card"><div class="row between small"><b>💸 Paid out this month</b><span><b>${money(P.monthPayout)}</b>${cap ? ' of ' + money(cap) : ''}</span></div>
+    ${cap ? `<div class="bar meter"><i style="width:${pct}%;${pct >= 100 ? 'background:var(--bad)' : pct >= 80 ? 'background:#f97316' : ''}"></i></div>${pct >= 80 ? `<div class="small" style="color:var(--bad);margin-top:6px;font-weight:800">${pct >= 100 ? 'Over your monthly budget!' : 'Close to your monthly budget'}</div>` : ''}` : ''}</div>`;
+  let body = '';
+  if (tab === 'inbox') body = parentInbox();
+  else if (tab === 'kids') body = parentKids();
+  else if (tab === 'quests') body = parentQuests();
+  else body = parentMore();
+  return `<div class="wrap">${head}${body}</div>${navBar([['inbox', '📥', 'Approvals', n], ['kids', '👧', 'Kids'], ['quests', '🗺️', 'Quests'], ['more', '⚙️', 'Settings']], tab)}`;
+}
+function parentInbox() {
+  const P = S.data.parent, T = P.taskTitles;
+  const subs = P.pending.map((s) => {
+    const k = member(s.kidId), t = T[s.taskId] || { title: 'Quest' };
+    return `<div class="card"><div class="row">${av(k)}<div class="grow"><b>${esc(k.name)}</b> <span class="muted small">· ${ago(s.submittedAt)}</span><div style="font-weight:700">${CAT[t.category] || '⭐'} ${esc(t.title)}</div>
+      <div class="small muted">${esc(s.resultLabel)}${s.score !== null && t.maxScore > 0 ? ` (${s.score}/${t.maxScore})` : ''}</div></div><span class="rew" style="font-size:1.2rem">${money(s.computedReward)}</span></div>
+      ${s.note ? `<div class="hint">💬 “${esc(s.note)}”</div>` : ''}
+      <div class="row" style="margin-top:12px;gap:8px"><button class="btn sm good grow" data-a="approve" data-id="${s.id}">✅ Approve</button><button class="btn sm ghost" data-a="review" data-id="${s.id}">✏️ Adjust</button><button class="btn sm ghost" data-a="sendBack" data-id="${s.id}">↩️</button></div></div>`;
+  }).join('');
+  const reqs = P.requests.map((r) => {
+    const k = member(r.kidId), kd = P.kids.find((x) => x.id === r.kidId);
+    const w = kd ? kd.stats.wallet : { spend: 0, save: 0 };
+    return `<div class="card"><div class="row">${av(k)}<div class="grow"><b>${esc(k.name)}</b> ${r.type === 'spend' ? 'wants to spend' : 'wants to unlock savings'}<div style="font-weight:700">${r.type === 'spend' ? '💳' : '🔓'} ${esc(r.description)}</div>
+      <div class="small muted">${r.type === 'spend' ? 'Spend jar: ' + money(w.spend) : 'Save jar: ' + money(w.save)}</div></div><span class="amt" style="font-size:1.2rem">${money(r.amount)}</span></div>
+      <div class="row" style="margin-top:12px;gap:8px"><button class="btn sm good grow" data-a="reqOk" data-id="${r.id}">✅ Approve</button><button class="btn sm ghost" data-a="reqNo" data-id="${r.id}">❌ Decline</button></div></div>`;
+  }).join('');
+  const props = P.proposals.map((t) => {
+    const k = member(t.proposedBy);
+    return `<div class="card"><div class="row">${av(k)}<div class="grow"><b>${esc(k.name)}</b> suggested a quest<div style="font-weight:700">💡 ${esc(t.title)}</div>${t.description ? `<div class="small muted">${esc(t.description)}</div>` : ''}</div><span class="rew">${money(t.reward)}</span></div>
+      <div class="row" style="margin-top:12px;gap:8px"><button class="btn sm good grow" data-a="propOk" data-id="${t.id}">👍 Review & approve</button><button class="btn sm ghost" data-a="propNo" data-id="${t.id}">❌</button></div></div>`;
+  }).join('');
+  const recent = P.recent.slice(0, 8).map((s) => {
+    const k = member(s.kidId), t = T[s.taskId] || { title: 'Quest' };
+    return `<div class="li">${av(k, 'sm')}<div class="grow"><div style="font-weight:700">${esc(t.title)}</div><div class="small muted">${esc(s.resultLabel)} · ${esc(member(s.reviewedBy).name)} · ${ago(s.reviewedAt)}</div></div>${s.status === 'approved' ? `<span class="amt p">+${money(s.finalReward)}</span>` : '<span class="chip warn">sent back</span>'}</div>`;
+  }).join('');
+  const none = !P.pending.length && !P.requests.length && !P.proposals.length;
+  return `${none ? `<div class="card empty"><div>🎉</div>All caught up! Nothing to approve.</div>` : ''}
+    ${P.pending.length ? `<div class="sec">🗺️ Finished quests</div>${subs}` : ''}
+    ${P.requests.length ? `<div class="sec">💳 Money requests</div>${reqs}` : ''}
+    ${P.proposals.length ? `<div class="sec">💡 Quest ideas</div>${props}` : ''}
+    ${recent ? `<div class="sec">🕘 Recently reviewed</div><div class="card">${recent}</div>` : ''}`;
+}
+function reviewSheet(id, mode) {
+  const P = S.data.parent, s = P.pending.find((x) => x.id === id), t = P.taskTitles[s.taskId], k = member(s.kidId);
+  if (mode === 'back') {
+    openSheet(`<h2>↩️ Send back to ${esc(k.name)}</h2><p class="muted">${esc(t.title)} — they can try again.</p>
+      <label>Note for ${esc(k.name)}</label><textarea id="rcomment" rows="3" placeholder="e.g. Please put the toys away too"></textarea>
+      <div style="height:16px"></div><button class="btn block bad" data-a="doReview" data-id="${id}" data-d="reject">Send back</button>`);
+    return;
+  }
+  let inner = '';
+  if (t.type === 'tiered') {
+    inner = `<label>Result</label>${t.tiers.map((x, i) => `<label class="opt" style="margin:8px 0"><input type="radio" name="rtier" value="${i}" ${s.tierIndex === i ? 'checked' : ''} data-reward="${x.reward}"> <span class="grow">${esc(x.label)}${t.maxScore > 0 ? ` <span class="muted small">(${x.min}–${x.max})</span>` : ''}</span><span class="rew">${money(x.reward)}</span></label>`).join('')}`;
+  } else if (t.type === 'multi') {
+    inner = `<label>Goals reached</label>${t.goals.map((x, i) => `<label class="opt" style="margin:8px 0"><input type="checkbox" name="rgoal" value="${i}" ${s.goalsDone.indexOf(i) >= 0 ? 'checked' : ''} data-reward="${x.reward}"> <span class="grow">${esc(x.label)}</span><span class="rew">${money(x.reward)}</span></label>`).join('')}`;
+  }
+  openSheet(`<h2>✏️ ${esc(t.title)}</h2><div class="row" style="margin:6px 0">${av(k, 'sm')}<b>${esc(k.name)}</b><span class="muted small">${esc(s.resultLabel)}${s.score !== null && t.maxScore > 0 ? ` · scored ${s.score}/${t.maxScore}` : ''}</span></div>
+    ${s.note ? `<div class="hint">💬 “${esc(s.note)}”</div>` : ''}${inner}
+    <label>Reward (RM)</label><input id="ramount" type="number" inputmode="decimal" step="0.1" min="0" value="${s.computedReward}">
+    <label>Note for ${esc(k.name)} (optional)</label><textarea id="rcomment" rows="2" placeholder="e.g. So proud of you!"></textarea>
+    <div style="height:16px"></div><button class="btn block good" data-a="doReview" data-id="${id}" data-d="approve" data-type="${t.type}">✅ Approve</button>`);
+  $$('input[name=rtier],input[name=rgoal]').forEach((el) => el.addEventListener('change', () => {
+    let sum = 0;
+    $$('input[name=rtier]:checked,input[name=rgoal]:checked').forEach((x) => { sum += Number(x.dataset.reward); });
+    $('#ramount').value = Math.round(sum * 100) / 100;
+  }));
+}
+function parentKids() {
+  const P = S.data.parent;
+  const kids = P.kids.map((k) => {
+    const st = k.stats;
+    return `<div class="card"><div class="row">${av(k, 'lg')}<div class="grow"><h2>${esc(k.name)}</h2><div class="small muted">${st.level.icon} ${esc(st.level.name)} · 🔥 ${st.streak.current} day${st.streak.current === 1 ? '' : 's'} · ${st.completed} quest${st.completed === 1 ? '' : 's'}</div>
+      <div class="fred" style="font-size:1.7rem;font-weight:700;margin-top:4px">${money(st.wallet.total)}</div><div class="small muted">💳 ${money(st.wallet.spend)} · 🐷 ${money(st.wallet.save)} (saves ${k.savePct}%)</div></div></div>
+      ${k.wishlist.length ? `<div class="small" style="margin-top:10px">🎁 Wishing for: ${k.wishlist.map((w) => esc(w.emoji + ' ' + w.title) + ' (' + money(w.price) + ')').join(', ')}</div>` : ''}
+      <div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap"><button class="btn sm" data-a="adjust" data-id="${k.id}" data-sign="1">➕ Add money</button><button class="btn sm ghost" data-a="adjust" data-id="${k.id}" data-sign="-1">➖ Record spend</button><button class="btn sm ghost" data-a="kidHistory" data-id="${k.id}">📜 History</button></div></div>`;
+  }).join('');
+  const fam = P.allMembers.map((m) => `<div class="li">${av(m, 'sm')}<div class="grow"><b>${esc(m.name)}</b> <span class="small muted">${m.role === 'parent' ? 'Parent' : 'Kid'}${m.active ? '' : ' · hidden'}${m.mustChangePin ? ' · PIN 0000' : ''}</span></div><button class="btn sm ghost" data-a="editMember" data-id="${m.id}">Edit</button><button class="btn sm ghost" data-a="resetPin" data-id="${m.id}">🔑</button></div>`).join('');
+  return `${kids || '<div class="card empty"><div>👧</div>No kids yet</div>'}
+    <div class="sec">👨‍👩‍👧‍👦 Family</div><div class="card">${fam}<div style="height:10px"></div><button class="btn ghost block" data-a="editMember">➕ Add family member</button></div>`;
+}
+function memberSheet(id) {
+  const m = id ? S.data.parent.allMembers.find((x) => x.id === id) : { name: '', role: 'kid', avatar: '🌟', color: COLORS[0], savePct: 20, active: true };
+  openSheet(`<h2>${id ? 'Edit ' + esc(m.name) : 'Add family member'}</h2>
+    <label>Name</label><input id="mname" value="${esc(m.name)}">
+    ${id ? '' : `<label>Role</label><div class="seg" id="mrole"><button class="${m.role === 'kid' ? 'on' : ''}" data-a="seg" data-v="kid">Kid</button><button class="${m.role === 'parent' ? 'on' : ''}" data-a="seg" data-v="parent">Parent</button></div>`}
+    <label>Avatar</label><div class="emojis" id="mav">${AVATARS.map((e) => `<button class="${e === m.avatar ? 'on' : ''}" data-a="pickEmoji" data-v="${e}">${e}</button>`).join('')}</div>
+    <label>Colour</label><div class="colors" id="mcol">${COLORS.map((c) => `<button class="${c === m.color ? 'on' : ''}" style="background:${c}" data-a="pickColor" data-v="${c}"></button>`).join('')}</div>
+    ${m.role === 'kid' || !id ? `<label>Auto-save % (goes to the Save jar)</label><input id="msave" type="number" min="0" max="100" value="${m.savePct}">` : ''}
+    ${id && id !== S.data.me.id ? `<label class="opt"><input type="checkbox" id="mactive" ${m.active ? 'checked' : ''}> Show in the app</label>` : ''}
+    ${id ? '' : '<div class="hint">They start with PIN 0000 and will choose their own.</div>'}
+    <div style="height:16px"></div><button class="btn block" data-a="saveMember" data-id="${id || ''}">Save</button>`);
+}
+function adjustSheet(id, sign) {
+  const k = S.data.parent.kids.find((x) => x.id === id);
+  const plus = sign > 0;
+  openSheet(`<h2>${plus ? '➕ Add money for' : '➖ Record spend for'} ${esc(k.name)}</h2>
+    <p class="muted">${plus ? 'A bonus or a reward outside the quests.' : 'Something they bought with their coins.'} Spend ${money(k.stats.wallet.spend)} · Save ${money(k.stats.wallet.save)}</p>
+    <label>Jar</label><div class="seg" id="ajar"><button class="on" data-a="seg" data-v="spend">💳 Spend</button><button data-a="seg" data-v="save">🐷 Save</button></div>
+    <label>Amount (RM)</label><input id="aamt" type="number" inputmode="decimal" step="0.1" min="0">
+    <label>What for?</label><input id="adesc" placeholder="${plus ? 'e.g. Ang pow, helped grandma' : 'e.g. Toy car'}">
+    <div style="height:16px"></div><button class="btn block ${plus ? 'good' : ''}" data-a="doAdjust" data-id="${id}" data-sign="${sign}">Save</button>`);
+}
+function parentQuests() {
+  const P = S.data.parent;
+  const active = P.tasks.filter((t) => !t.isTemplate), tpl = P.tasks.filter((t) => t.isTemplate);
+  const row = (t) => `<div class="card" data-a="editTask" data-id="${t.id}" style="cursor:pointer"><div class="task"><div class="ic">${CAT[t.category] || '⭐'}</div><div class="grow"><h3>${esc(t.title)}</h3>
+    <div class="small muted"><span class="rew">${rewardText(t)}</span> · ${recText(t.recurrence)}${t.dueDate ? ' · Due ' + fmtDate(t.dueDate) : ''}</div></div>
+    <div class="row" style="gap:2px">${t.assignees.map((id) => av(member(id), 'sm')).join('')}</div></div></div>`;
+  return `<div class="row" style="gap:10px;margin-top:6px"><button class="btn grow" data-a="newTask">➕ New quest</button><button class="btn ghost grow" data-a="fromTemplate">📋 From template</button></div>
+    <div class="sec">🗺️ Active quests (${active.length})</div>${active.length ? active.map(row).join('') : '<div class="card empty"><div>🗺️</div>No quests yet. Create one or start from a template.</div>'}
+    <div class="sec">📋 Templates</div>${tpl.map(row).join('')}`;
+}
+function templateSheet() {
+  const tpl = S.data.parent.tasks.filter((t) => t.isTemplate);
+  openSheet(`<h2>📋 Start from a template</h2>${tpl.map((t) => `<div class="opt" data-a="useTemplate" data-id="${t.id}"><span style="font-size:1.4rem">${CAT[t.category] || '⭐'}</span><div class="grow">${esc(t.title)}<div class="small muted">${rewardText(t)} · ${recText(t.recurrence)}</div></div>›</div>`).join('')}`);
+}
+function tierRow(x, scored) {
+  x = x || {};
+  return `<div class="trow"><input class="tl" placeholder="Level (e.g. Excellent)" value="${esc(x.label || '')}"><input class="sc tmin" type="number" placeholder="from" value="${x.min != null ? x.min : ''}"><input class="sc tmax" type="number" placeholder="to" value="${x.max != null ? x.max : ''}"><input class="tr" type="number" step="0.1" placeholder="RM" value="${x.reward != null ? x.reward : ''}"><button class="iconbtn" data-a="delRow">✕</button></div>`;
+}
+function goalRow(x) {
+  x = x || {};
+  return `<div class="trow" style="grid-template-columns:2fr 1fr 34px"><input class="gl" placeholder="Goal" value="${esc(x.label || '')}"><input class="gr" type="number" step="0.1" placeholder="RM" value="${x.reward != null ? x.reward : ''}"><button class="iconbtn" data-a="delRow">✕</button></div>`;
+}
+function taskSheet(t, fromTemplate) {
+  const P = S.data.parent;
+  const isNew = !t || fromTemplate;
+  t = t ? JSON.parse(JSON.stringify(t)) : { title: '', description: '', category: 'Chores', type: 'simple', reward: 1, tiers: [], goals: [], maxScore: 0, recurrence: 'once', dueDate: '', assignees: P.kids.map((k) => k.id), isTemplate: false };
+  if (fromTemplate) { t.isTemplate = false; t.assignees = P.kids.map((k) => k.id); }
+  if (t.type === 'tiered' && !t.tiers.length) t.tiers = [{ label: 'Good', min: 0, max: 7, reward: 1 }, { label: 'Excellent', min: 8, max: 9, reward: 2 }, { label: 'Outstanding', min: 10, max: 10, reward: 3 }];
+  const scored = t.type !== 'tiered' || t.maxScore > 0 || !t.tiers.length;
+  const editId = fromTemplate ? '' : (t.id || '');
+  openSheet(`<h2>${isNew ? '➕ New quest' : '✏️ Edit quest'}</h2>
+    <label>Quest name</label><input id="ttitle" value="${esc(t.title)}" placeholder="e.g. Make your bed">
+    <label>Details (optional)</label><input id="tdesc" value="${esc(t.description)}">
+    <label>Category</label><div class="emojis" id="tcat">${Object.keys(CAT).map((c) => `<button class="${c === t.category ? 'on' : ''}" data-a="pickEmoji" data-v="${c}" title="${c}">${CAT[c]}</button>`).join('')}</div>
+    <label>Reward type</label><div class="seg" id="ttype"><button class="${t.type === 'simple' ? 'on' : ''}" data-a="segType" data-v="simple">✅ Done / not</button><button class="${t.type === 'tiered' ? 'on' : ''}" data-a="segType" data-v="tiered">🏅 Levels</button><button class="${t.type === 'multi' ? 'on' : ''}" data-a="segType" data-v="multi">🎯 Goals</button></div>
+    <div id="pane-simple" style="${t.type === 'simple' ? '' : 'display:none'}"><label>Reward (RM)</label><input id="treward" type="number" inputmode="decimal" step="0.1" value="${t.reward || ''}"></div>
+    <div id="pane-tiered" style="${t.type === 'tiered' ? '' : 'display:none'}">
+      <label class="opt"><input type="checkbox" id="tscored" ${scored ? 'checked' : ''} data-a="toggleScored"> Based on a score <input id="tmaxscore" type="number" style="width:90px;margin-left:auto" placeholder="out of" value="${t.maxScore > 0 ? t.maxScore : 10}"></label>
+      <div class="hint small" id="tierhint">${scored ? 'Kids type their score and the level is picked automatically.' : 'Kids choose the level they reached (e.g. Took part / Top 3 / Winner).'}</div>
+      <div id="tiers" class="${scored ? '' : 'noscore'}">${t.tiers.map((x) => tierRow(x)).join('')}</div>
+      <button class="btn sm ghost" data-a="addTier">+ Add level</button></div>
+    <div id="pane-multi" style="${t.type === 'multi' ? '' : 'display:none'}"><div class="hint small">Each goal pays its own reward. Kids tick what they achieved.</div>
+      <div id="goals">${(t.goals.length ? t.goals : [{}, {}]).map(goalRow).join('')}</div><button class="btn sm ghost" data-a="addGoal">+ Add goal</button></div>
+    <label>Repeats</label><div class="seg" id="trec"><button class="${t.recurrence === 'once' ? 'on' : ''}" data-a="seg" data-v="once">One time</button><button class="${t.recurrence === 'daily' ? 'on' : ''}" data-a="seg" data-v="daily">Daily</button><button class="${t.recurrence === 'weekly' ? 'on' : ''}" data-a="seg" data-v="weekly">Weekly</button></div>
+    <label>Due date (optional)</label><input id="tdue" type="date" value="${esc(t.dueDate)}">
+    <label>For</label><div id="tkids">${P.kids.map((k) => `<label class="opt"><input type="checkbox" value="${k.id}" ${t.assignees.indexOf(k.id) >= 0 ? 'checked' : ''}> ${esc(k.avatar)} ${esc(k.name)}</label>`).join('')}</div>
+    <label class="opt"><input type="checkbox" id="ttpl" ${t.isTemplate ? 'checked' : ''}> Save as a template (reusable, not assigned)</label>
+    <div style="height:16px"></div><button class="btn block" data-a="saveTask" data-id="${editId}">💾 Save quest</button>
+    ${editId ? `<div style="height:10px"></div><button class="btn block ghost" data-a="archiveTask" data-id="${editId}">🗑️ ${t.isTemplate ? 'Delete template' : 'Remove quest'}</button>` : ''}`);
+}
+function readTask(id) {
+  const type = $('#ttype .on').dataset.v;
+  const scored = $('#tscored').checked;
+  return {
+    id: id || undefined,
+    title: $('#ttitle').value, description: $('#tdesc').value,
+    category: ($('#tcat .on') || { dataset: { v: 'Other' } }).dataset.v,
+    type, reward: Number($('#treward').value) || 0,
+    maxScore: type === 'tiered' && scored ? Number($('#tmaxscore').value) || 0 : 0,
+    tiers: $$('#tiers .trow').map((r) => ({ label: $('.tl', r).value, min: $('.tmin', r).value, max: $('.tmax', r).value, reward: $('.tr', r).value })),
+    goals: $$('#goals .trow').map((r) => ({ label: $('.gl', r).value, reward: $('.gr', r).value })),
+    recurrence: $('#trec .on').dataset.v, dueDate: $('#tdue').value,
+    assignees: $$('#tkids input:checked').map((x) => x.value), isTemplate: $('#ttpl').checked
+  };
+}
+function parentMore() {
+  const s = S.data.parent.settings;
+  return `<div class="sec">⚙️ Game rules</div><div class="card">
+    <label>Monthly budget (RM) — warns when close</label><input id="sCap" type="number" value="${esc(s.monthlyCap)}">
+    <label>Family interest on Save jar (% per month)</label><input id="sInt" type="number" step="0.5" value="${esc(s.interestPct)}">
+    <label>Streak bonus: every … days in a row</label><input id="sDays" type="number" value="${esc(s.streakDays)}">
+    <label>Streak bonus amount (RM)</label><input id="sBonus" type="number" step="0.5" value="${esc(s.streakBonus)}">
+    <div class="hint small">Each kid's auto-save % is set in Kids → Family → Edit.</div></div>
+    <div class="sec">📧 Email alerts</div><div class="card">
+    <div class="seg" id="sMode"><button class="${s.notifyMode === 'instant' ? 'on' : ''}" data-a="seg" data-v="instant">Instant</button><button class="${s.notifyMode === 'digest' ? 'on' : ''}" data-a="seg" data-v="digest">Daily 8pm</button><button class="${s.notifyMode === 'off' ? 'on' : ''}" data-a="seg" data-v="off">Off</button></div>
+    <label>Send to (comma separated)</label><input id="sMail" type="email" multiple value="${esc(s.notifyEmails)}" placeholder="you@gmail.com, wife@gmail.com"></div>
+    <button class="btn block" data-a="saveSettings">💾 Save settings</button>
+    <div class="sec">📜 All money activity</div><div class="card">${ledgerList(S.data.parent.ledger.slice(0, 30), true)}</div>
+    <div class="sec">📲 Install on a phone</div><div class="card small">
+    <b>iPhone:</b> open this page in Safari → Share → <i>Add to Home Screen</i>.<br><b>Android:</b> open in Chrome → ⋮ menu → <i>Add to Home screen</i> / <i>Install app</i>.</div>
+    <button class="btn block ghost" data-a="logout">🚪 Switch user</button>`;
+}
+
+/* ================= events ================= */
+const H = {
+  bg(d, el, e) { if (e.target === el) closeSheet(); },
+  async connect() {
+    const u = $('#apiurl').value.trim();
+    if (!/^https:\/\/script\.google(usercontent)?\.com\//.test(u)) { toast('That does not look like an Apps Script link', true); return; }
+    S.api = u; LS.set('api', u); render(); loadMembers();
+  },
+  pick(d) { S.pickId = d.id; S.pin = ''; render(); },
+  unpick() { S.pickId = null; S.pin = ''; render(); },
+  key(d) {
+    if (d.k === 'del') S.pin = S.pin.slice(0, -1);
+    else if (S.pin.length < 4) S.pin += d.k;
+    $$('#dots i').forEach((el, i) => el.classList.toggle('f', S.pin.length > i));
+    if (S.pin.length === 4) setTimeout(onPinComplete, 120);
+  },
+  tab(d) { S.tab = d.t; render(); window.scrollTo(0, 0); },
+  refresh() { refresh(); },
+  menu() {
+    openSheet(`<h2>${esc(S.data.me.avatar)} ${esc(S.data.me.name)}</h2><div style="height:12px"></div>
+      <button class="btn block ghost" data-a="changePin">🔑 Change my PIN</button><div style="height:10px"></div>
+      <button class="btn block ghost" data-a="logout">🚪 Switch user</button>`);
+  },
+  changePin() { closeSheet(); S.data.me.mustChangePin = true; S.pin = ''; S.pin1 = null; render(); },
+  logout() { closeSheet(); logout(); },
+  closeCeleb(d, el, e) { if (e.target === el || el.tagName === 'BUTTON') $('#overlay').innerHTML = ''; },
+  /* kid */
+  submit(d) { submitSheet(d.id); },
+  async doSubmit(d) {
+    const t = S.data.kid.tasks.find((x) => x.id === d.id), p = { taskId: d.id, note: $('#note').value };
+    if (t.type === 'tiered' && t.maxScore > 0) { p.score = $('#score').value; if (p.score === '') return toast('Type your score', true); }
+    else if (t.type === 'tiered') { const c = $('input[name=tier]:checked'); if (!c) return toast('Choose how it went', true); p.tierIndex = Number(c.value); }
+    else if (t.type === 'multi') { p.goalsDone = $$('input[name=goal]:checked').map((x) => Number(x.value)); if (!p.goalsDone.length) return toast('Tick at least one goal', true); }
+    if (await act('submit', p)) { toast('Sent! 🚀 Waiting for a parent'); confetti(); }
+  },
+  propose() {
+    openSheet(`<h2>💡 Suggest a quest</h2><p class="muted">Got an idea to earn coins? A parent will check it.</p>
+      <label>What will you do?</label><input id="pt" placeholder="e.g. Wash the car"><label>Details (optional)</label><input id="pd">
+      <label>How much do you think it's worth? (RM)</label><input id="pr" type="number" inputmode="decimal" step="0.5">
+      <div style="height:16px"></div><button class="btn block" data-a="doPropose">Send idea 💡</button>`);
+  },
+  doPropose() { act('proposeTask', { title: $('#pt').value, description: $('#pd').value, reward: $('#pr').value }, 'Idea sent! 💡'); },
+  wishAdd() {
+    openSheet(`<h2>🎁 Add a wish</h2><label>Pick an icon</label><div class="emojis" id="we">${WISH_EMOJI.map((e, i) => `<button class="${i ? '' : 'on'}" data-a="pickEmoji" data-v="${e}">${e}</button>`).join('')}</div>
+      <label>What is it?</label><input id="wt" placeholder="e.g. Lego Ninjago set"><label>Price (RM)</label><input id="wp" type="number" inputmode="decimal" step="0.5">
+      <div style="height:16px"></div><button class="btn block" data-a="doWish">Add to wishlist</button>`);
+  },
+  doWish() { act('wishAdd', { title: $('#wt').value, price: $('#wp').value, emoji: $('#we .on').dataset.v }, 'Added! ✨'); },
+  wishDel(d) { if (confirm('Remove this wish?')) act('wishRemove', { id: d.id }); },
+  buyWish(d) {
+    const w = S.data.kid.wishlist.find((x) => x.id === d.id), wal = S.data.kid.stats.wallet;
+    if (wal.spend >= w.price) requestSheet('spend', w);
+    else { toast('Not enough in Spend. Unlock some savings first!', true); requestSheet('unlock', { title: 'For ' + w.title, price: Math.round((w.price - wal.spend) * 100) / 100, id: '' }); }
+  },
+  spendReq() { requestSheet('spend'); },
+  unlockReq() { requestSheet('unlock'); },
+  doRequest(d) { act('request', { type: d.type, amount: $('#ramt').value, description: $('#rdesc').value, wishId: d.wish }, 'Asked! 🙏'); },
+  /* parent */
+  approve(d) { act('review', { submissionId: d.id, decision: 'approve' }, 'Approved ✅'); },
+  review(d) { reviewSheet(d.id); },
+  sendBack(d) { reviewSheet(d.id, 'back'); },
+  doReview(d) {
+    const p = { submissionId: d.id, decision: d.d, comment: $('#rcomment').value };
+    if (d.d === 'approve') {
+      if (d.type === 'tiered') { const c = $('input[name=rtier]:checked'); if (c) p.tierIndex = Number(c.value); }
+      if (d.type === 'multi') p.goalsDone = $$('input[name=rgoal]:checked').map((x) => Number(x.value));
+      p.finalReward = $('#ramount').value;
+      if (d.type === 'multi' && !p.goalsDone.length) delete p.goalsDone;
+    }
+    act('review', p, d.d === 'approve' ? 'Approved ✅' : 'Sent back ↩️');
+  },
+  reqOk(d) { act('reviewRequest', { requestId: d.id, decision: 'approve' }, 'Approved ✅'); },
+  reqNo(d) {
+    openSheet(`<h2>❌ Decline request</h2><label>Reason (optional)</label><textarea id="rc" rows="2" placeholder="e.g. Let's save a bit longer"></textarea><div style="height:16px"></div><button class="btn block bad" data-a="doReqNo" data-id="${d.id}">Decline</button>`);
+  },
+  doReqNo(d) { act('reviewRequest', { requestId: d.id, decision: 'reject', comment: $('#rc').value }, 'Declined'); },
+  propOk(d) {
+    const t = S.data.parent.proposals.find((x) => x.id === d.id);
+    openSheet(`<h2>💡 ${esc(t.title)}</h2><p class="muted">Suggested by ${esc(member(t.proposedBy).name)}</p><label>Reward (RM)</label><input id="pr" type="number" step="0.5" value="${t.reward}">
+      <label>Repeats</label><div class="seg" id="prec"><button class="on" data-a="seg" data-v="once">One time</button><button data-a="seg" data-v="daily">Daily</button><button data-a="seg" data-v="weekly">Weekly</button></div>
+      <div style="height:16px"></div><button class="btn block good" data-a="doPropOk" data-id="${t.id}">Approve quest</button>`);
+  },
+  doPropOk(d) { act('reviewProposal', { taskId: d.id, decision: 'approve', reward: $('#pr').value, recurrence: $('#prec .on').dataset.v }, 'Quest added ✅'); },
+  propNo(d) { act('reviewProposal', { taskId: d.id, decision: 'reject' }, 'Declined'); },
+  adjust(d) { adjustSheet(d.id, Number(d.sign)); },
+  doAdjust(d) { act('adjust', { kidId: d.id, jar: $('#ajar .on').dataset.v, amount: Number($('#aamt').value) * Number(d.sign), description: $('#adesc').value }, 'Saved ✅'); },
+  kidHistory(d) {
+    const k = S.data.parent.kids.find((x) => x.id === d.id);
+    openSheet(`<h2>📜 ${esc(k.name)}'s history</h2>${ledgerList(S.data.parent.ledger.filter((l) => l.kidId === d.id))}`);
+  },
+  editMember(d) { memberSheet(d.id); },
+  saveMember(d) {
+    const role = $('#mrole .on');
+    const m = { id: d.id || undefined, name: $('#mname').value, avatar: $('#mav .on') ? $('#mav .on').dataset.v : undefined, color: $('#mcol .on') ? $('#mcol .on').dataset.v : undefined, role: role ? role.dataset.v : undefined };
+    if ($('#msave')) m.savePct = $('#msave').value;
+    if ($('#mactive')) m.active = $('#mactive').checked;
+    act('memberSave', { member: m }, 'Saved ✅');
+  },
+  resetPin(d) { const m = member(d.id); if (confirm('Reset ' + m.name + "'s PIN to 0000? They'll choose a new one next time.")) act('resetPin', { memberId: d.id }, 'PIN reset to 0000'); },
+  newTask() { taskSheet(null); },
+  fromTemplate() { templateSheet(); },
+  useTemplate(d) { taskSheet(S.data.parent.tasks.find((t) => t.id === d.id), true); },
+  editTask(d) { taskSheet(S.data.parent.tasks.find((t) => t.id === d.id)); },
+  saveTask(d) { act('taskSave', { task: readTask(d.id) }, 'Quest saved 🗺️'); },
+  archiveTask(d) { if (confirm('Remove this quest? History and coins stay.')) act('taskArchive', { id: d.id }, 'Removed'); },
+  segType(d, el) {
+    $$('#ttype button').forEach((b) => b.classList.toggle('on', b === el));
+    ['simple', 'tiered', 'multi'].forEach((k) => { $('#pane-' + k).style.display = k === d.v ? '' : 'none'; });
+    if (d.v === 'tiered' && !$$('#tiers .trow').length) { $('#tiers').innerHTML = [{ label: 'Good', min: 0, max: 7, reward: 1 }, { label: 'Excellent', min: 8, max: 9, reward: 2 }, { label: 'Outstanding', min: 10, max: 10, reward: 3 }].map((x) => tierRow(x)).join(''); }
+  },
+  toggleScored(d, el) {
+    const on = el.checked;
+    $('#tiers').classList.toggle('noscore', !on);
+    $('#tierhint').textContent = on ? 'Kids type their score and the level is picked automatically.' : 'Kids choose the level they reached (e.g. Took part / Top 3 / Winner).';
+  },
+  addTier() { $('#tiers').insertAdjacentHTML('beforeend', tierRow({})); },
+  addGoal() { $('#goals').insertAdjacentHTML('beforeend', goalRow({})); },
+  delRow(d, el) { el.closest('.trow').remove(); },
+  seg(d, el) { $$('button', el.parentNode).forEach((b) => b.classList.toggle('on', b === el)); },
+  pickEmoji(d, el) { $$('button', el.parentNode).forEach((b) => b.classList.toggle('on', b === el)); },
+  pickColor(d, el) { $$('button', el.parentNode).forEach((b) => b.classList.toggle('on', b === el)); },
+  saveSettings() {
+    act('settingsSave', { settings: { monthlyCap: $('#sCap').value, interestPct: $('#sInt').value, streakDays: $('#sDays').value, streakBonus: $('#sBonus').value, notifyMode: $('#sMode .on').dataset.v, notifyEmails: $('#sMail').value } }, 'Settings saved ✅');
+  }
+};
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-a]');
+  if (!el) return;
+  const a = el.dataset.a;
+  if (a === 'toggleScored') { H[a](el.dataset, el, e); return; }
+  if (el.tagName === 'LABEL' || (el.tagName === 'INPUT')) return;
+  if (!H[a]) return;
+  if (a !== 'bg' && a !== 'closeCeleb') e.preventDefault();
+  H[a](el.dataset, el, e);
+});
+// Live tier preview in the submit sheet
+document.addEventListener('input', (e) => {
+  if (e.target.id !== 'score') return;
+  const box = $('#tierprev'); if (!box) return;
+  const t = S.data.kid.tasks.find((x) => box.closest('.sheet').querySelector('[data-a=doSubmit]').dataset.id === x.id);
+  const sc = Number(e.target.value);
+  const hit = e.target.value === '' ? null : t.tiers.find((x) => sc >= x.min && sc <= x.max);
+  box.innerHTML = hit ? `🎯 That's <b>${esc(hit.label)}</b>! You'll get <b>${money(hit.reward)}</b>` : t.tiers.map((x) => `${esc(x.label)}: ${x.min}–${x.max} → <b>${money(x.reward)}</b>`).join('<br>');
+});
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.token) refresh(true); });
+
+render();
+if (S.api && !S.token) loadMembers();
+if (S.api && S.token) refresh(true);
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
