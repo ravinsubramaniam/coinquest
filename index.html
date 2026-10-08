@@ -560,12 +560,12 @@ function adjustSheet(id, sign) {
 function parentQuests() {
   const P = S.data.parent;
   const active = P.tasks.filter((t) => !t.isTemplate), tpl = P.tasks.filter((t) => t.isTemplate);
-  const row = (t) => `<div class="card" data-a="editTask" data-id="${t.id}" style="cursor:pointer"><div class="task"><div class="ic">${CAT[t.category] || '⭐'}</div><div class="grow"><h3>${esc(t.title)}</h3>
+  const row = (t) => `<div class="card" data-a="${t.isTemplate ? 'useTemplate' : 'editTask'}" data-id="${t.id}" style="cursor:pointer"><div class="task"><div class="ic">${CAT[t.category] || '⭐'}</div><div class="grow"><h3>${esc(t.title)}</h3>
     <div class="small muted"><span class="rew">${rewardText(t)}</span> · ${recText(t.recurrence)}${t.dueDate ? ' · Due ' + fmtDate(t.dueDate) : ''}</div></div>
-    <div class="row" style="gap:2px">${t.assignees.map((id) => av(member(id), 'sm')).join('')}</div></div></div>`;
+    ${t.isTemplate ? `<button class="iconbtn" data-a="editTask" data-id="${t.id}" title="Edit template">✏️</button>` : `<div class="row" style="gap:2px">${t.assignees.map((id) => av(member(id), 'sm')).join('')}</div>`}</div></div>`;
   return `<div class="row" style="gap:10px;margin-top:6px"><button class="btn grow" data-a="newTask">➕ New quest</button><button class="btn ghost grow" data-a="fromTemplate">📋 From template</button></div>
     <div class="sec">🗺️ Active quests (${active.length})</div>${active.length ? active.map(row).join('') : '<div class="card empty"><div>🗺️</div>No quests yet. Create one or start from a template.</div>'}
-    <div class="sec">📋 Templates</div>${tpl.map(row).join('')}`;
+    <div class="sec">📋 Templates</div><p class="small muted" style="margin:0 4px 6px">Tap a template to give it to the kids. ✏️ edits the template itself.</p>${tpl.map(row).join('')}`;
 }
 function templateSheet() {
   const tpl = S.data.parent.tasks.filter((t) => t.isTemplate);
@@ -633,8 +633,10 @@ function taskSheet(t, fromTemplate) {
       <div id="goals">${(t.goals.length ? t.goals : [{}, {}]).map(goalRow).join('')}</div><button class="btn sm ghost" data-a="addGoal">+ Add goal</button></div>
     <label>Repeats</label><div class="seg" id="trec"><button class="${t.recurrence === 'once' ? 'on' : ''}" data-a="seg" data-v="once">One time</button><button class="${t.recurrence === 'daily' ? 'on' : ''}" data-a="seg" data-v="daily">Daily</button><button class="${t.recurrence === 'weekly' ? 'on' : ''}" data-a="seg" data-v="weekly">Weekly</button></div>
     <label>Due date (optional)</label>${dueEditor(t.dueDate)}
-    <label>For</label><div id="tkids">${P.kids.map((k) => `<label class="opt"><input type="checkbox" value="${k.id}" ${t.assignees.indexOf(k.id) >= 0 ? 'checked' : ''}> ${esc(k.avatar)} ${esc(k.name)}</label>`).join('')}</div>
-    <label class="opt"><input type="checkbox" id="ttpl" ${t.isTemplate ? 'checked' : ''}> Save as a template (reusable, not assigned)</label>
+    <div id="tforwrap" style="${t.isTemplate ? 'display:none' : ''}"><label>For</label><div id="tkids">${P.kids.map((k) => `<label class="opt"><input type="checkbox" value="${k.id}" ${t.assignees.indexOf(k.id) >= 0 ? 'checked' : ''}> ${esc(k.avatar)} ${esc(k.name)}</label>`).join('')}</div>
+</div>
+    ${t.isTemplate ? '<div class="hint small">📋 You are editing a <b>template</b>. Templates are not given to the kids. To assign it, go back and tap the template card instead.</div>' : ''}
+    <label class="opt"><input type="checkbox" id="ttpl" data-a="toggleTpl" ${t.isTemplate ? 'checked' : ''}> Save as a template (reusable, not assigned)</label>
     <div style="height:16px"></div><button class="btn block" data-a="saveTask" data-id="${editId}">💾 Save quest</button>
     ${editId ? `<div style="height:10px"></div><button class="btn block ghost" data-a="archiveTask" data-id="${editId}">🗑️ ${t.isTemplate ? 'Delete template' : 'Remove quest'}</button>` : ''}`);
 }
@@ -774,7 +776,8 @@ const H = {
   fromTemplate() { templateSheet(); },
   useTemplate(d) { taskSheet(S.data.parent.tasks.find((t) => t.id === d.id), true); },
   editTask(d) { taskSheet(S.data.parent.tasks.find((t) => t.id === d.id)); },
-  saveTask(d) { let t; try { t = readTask(d.id); } catch (e) { return toast(e.message, true); } act('taskSave', { task: t }, 'Quest saved 🗺️'); },
+  saveTask(d) { let t; try { t = readTask(d.id); } catch (e) { return toast(e.message, true); }
+    if (!t.isTemplate && !t.assignees.length) return toast('Tick who this quest is for', true); act('taskSave', { task: t }, 'Quest saved 🗺️'); },
   dueQuick(d) {
     if (d.v === '') return setDue(null);
     const x = new Date();
@@ -793,6 +796,7 @@ const H = {
     $('#tiers').classList.toggle('noscore', !on);
     $('#tierhint').textContent = on ? 'Kids type their score and the level is picked automatically.' : 'Kids choose the level they reached (e.g. Took part / Top 3 / Winner).';
   },
+  toggleTpl(d, el) { $('#tforwrap').style.display = el.checked ? 'none' : ''; },
   addTier() { $('#tiers').insertAdjacentHTML('beforeend', tierRow({})); },
   addGoal() { $('#goals').insertAdjacentHTML('beforeend', goalRow({})); },
   delRow(d, el) { el.closest('.trow').remove(); },
@@ -808,7 +812,7 @@ document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-a]');
   if (!el) return;
   const a = el.dataset.a;
-  if (a === 'toggleScored') { H[a](el.dataset, el, e); return; }
+  if (a === 'toggleScored' || a === 'toggleTpl') { H[a](el.dataset, el, e); return; }
   if (el.tagName === 'LABEL' || (el.tagName === 'INPUT')) return;
   if (!H[a]) return;
   if (a !== 'bg' && a !== 'closeCeleb') e.preventDefault();
